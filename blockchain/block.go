@@ -12,7 +12,12 @@ type Block struct {
 }
 
 func CreateBlock(data string, prevHash []byte) *Block {
-	block := &Block{[]byte{}, []byte(data), prevHash, 0}
+	block := &Block{
+		Hash: []byte{}, 
+		Data: []byte(data), 
+		PrevHash: prevHash, 
+		Nonce: 0,
+	}
 	pow := NewProof(block)
 	nonce, hash := pow.Run()
 
