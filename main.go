@@ -20,6 +20,7 @@ func (cli *CommandLine) printUsage() {
 	fmt.Println(" print - Prints the blocks in the chain")
 }
 
+// check if the number of arguments equal 2
 func (cli *CommandLine) validateArgs() {
 	if len(os.Args) < 2 {
 		cli.printUsage()
@@ -27,11 +28,13 @@ func (cli *CommandLine) validateArgs() {
 	}
 }
 
+// call to blockchain.addBlock()
 func (cli *CommandLine) addBlock(data string) {
 	cli.blockchain.AddBlock(data)
 	fmt.Println("Added Block!")
 }
 
+// loop through blockchain and print them
 func (cli *CommandLine) printChain() {
 	iter := cli.blockchain.Iterator()
 
@@ -55,9 +58,11 @@ func (cli *CommandLine) run() {
 	cli.validateArgs()
 
 	addBlockCmd := flag.NewFlagSet("add", flag.ExitOnError)
-	printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
 	addBlockData := addBlockCmd.String("block", "", "Block data")
 
+	printChainCmd := flag.NewFlagSet("print", flag.ExitOnError)
+	// fmt.Println(os.Args)
+	// [/tmp/go-build1444004440/b001/exe/golang-blockchain print]
 	switch os.Args[1] {
 	case "add":
 		err := addBlockCmd.Parse(os.Args[2:])

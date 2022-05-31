@@ -23,9 +23,7 @@ type BlockChainIterator struct {
 func InitBlockChain() *BlockChain {
 	var lastHash []byte
 
-	opts := badger.DefaultOptions
-	opts.Dir = dbPath
-	opts.ValueDir = dbPath
+	opts := badger.DefaultOptions(dbPath)
 
 	db, err := badger.Open(opts)
 	Handle(err)
@@ -45,7 +43,7 @@ func InitBlockChain() *BlockChain {
 		} else {
 			item, err := txn.Get([]byte("lh"))
 			Handle(err)
-			lastHash, err = item.Value()
+			lastHash, err = item.ValueCopy(nil)
 			return err
 		}
 	})
@@ -62,7 +60,7 @@ func (chain *BlockChain) AddBlock(data string) {
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
-		lastHash, err = item.Value()
+		lastHash, err = item.ValueCopy(nil)
 
 		return err
 	})
@@ -94,7 +92,7 @@ func (iter *BlockChainIterator) Next() *Block {
 	err := iter.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(iter.CurrentHash)
 		Handle(err)
-		encodedBlock, err := item.Value()
+		encodedBlock, err := item.ValueCopy(nil)
 		block = Deserialize(encodedBlock)
 
 		return err
