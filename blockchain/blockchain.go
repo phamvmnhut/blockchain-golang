@@ -25,6 +25,7 @@ type BlockChainIterator struct {
 	Database    *badger.DB
 }
 
+// check if the blockchain data is already in the database
 func DBexists() bool {
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
 		return false
@@ -33,6 +34,7 @@ func DBexists() bool {
 	return true
 }
 
+// get blockchain data from the database
 func ContinueBlockChain(address string) *BlockChain {
 	if DBexists() == false {
 		fmt.Println("No existing blockchain found, create one!")
@@ -41,9 +43,7 @@ func ContinueBlockChain(address string) *BlockChain {
 
 	var lastHash []byte
 
-	opts := badger.DefaultOptions
-	opts.Dir = dbPath
-	opts.ValueDir = dbPath
+	opts := badger.DefaultOptions(dbPath)
 
 	db, err := badger.Open(opts)
 	Handle(err)
@@ -51,7 +51,7 @@ func ContinueBlockChain(address string) *BlockChain {
 	err = db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
-		lastHash, err = item.Value()
+		lastHash, err = item.ValueCopy(nil)
 
 		return err
 	})
@@ -70,9 +70,7 @@ func InitBlockChain(address string) *BlockChain {
 		runtime.Goexit()
 	}
 
-	opts := badger.DefaultOptions
-	opts.Dir = dbPath
-	opts.ValueDir = dbPath
+	opts := badger.DefaultOptions(dbPath)
 
 	db, err := badger.Open(opts)
 	Handle(err)
@@ -103,7 +101,7 @@ func (chain *BlockChain) AddBlock(transactions []*Transaction) {
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
-		lastHash, err = item.Value()
+		lastHash, err = item.ValueCopy(nil)
 
 		return err
 	})
@@ -135,7 +133,7 @@ func (iter *BlockChainIterator) Next() *Block {
 	err := iter.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(iter.CurrentHash)
 		Handle(err)
-		encodedBlock, err := item.Value()
+		encodedBlock, err := item.ValueCopy(nil)
 		block = Deserialize(encodedBlock)
 
 		return err
@@ -146,29 +144,31 @@ func (iter *BlockChainIterator) Next() *Block {
 
 	return block
 }
-
+// list transaction which are not yet used
 func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
 	var unspentTxs []Transaction
 
+	// map id of transactions to ID of outputs
 	spentTXOs := make(map[string][]int)
 
 	iter := chain.Iterator()
 
-	for {
+	for { // loop through the blockchain => loop block by block
 		block := iter.Next()
 
 		for _, tx := range block.Transactions {
 			txID := hex.EncodeToString(tx.ID)
-
+			// txID is the key of the map, so we must type cast to string
 		Outputs:
-			for outIdx, out := range tx.Outputs {
-				if spentTXOs[txID] != nil {
+			for outIdx, out := range tx.Outputs { // loop through the outputs of the transaction
+				if spentTXOs[txID] != nil { // check transaction id and output index in the map
 					for _, spentOut := range spentTXOs[txID] {
 						if spentOut == outIdx {
 							continue Outputs
 						}
 					}
 				}
+				// check if output owned by the address (me)
 				if out.CanBeUnlocked(address) {
 					unspentTxs = append(unspentTxs, *tx)
 				}
@@ -190,6 +190,7 @@ func (chain *BlockChain) FindUnspentTransactions(address string) []Transaction {
 	return unspentTxs
 }
 
+// list out transaction which are not yet used
 func (chain *BlockChain) FindUTXO(address string) []TxOutput {
 	var UTXOs []TxOutput
 	unspentTransactions := chain.FindUnspentTransactions(address)
@@ -204,6 +205,7 @@ func (chain *BlockChain) FindUTXO(address string) []TxOutput {
 	return UTXOs
 }
 
+// find and check can be spent with amount
 func (chain *BlockChain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
 	unspentOuts := make(map[string][]int)
 	unspentTxs := chain.FindUnspentTransactions(address)
