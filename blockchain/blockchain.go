@@ -37,7 +37,7 @@ func DBexists() bool {
 	return true
 }
 
-func ContinueBlockChain(address string) *BlockChain {
+func ContinueBlockChain() *BlockChain {
 	if DBexists() == false {
 		fmt.Println("No existing blockchain found, create one!")
 		runtime.Goexit()
@@ -254,6 +254,7 @@ func (bc *BlockChain) FindTransaction(ID []byte) (Transaction, error) {
 	return Transaction{}, errors.New("Transaction does not exist")
 }
 
+// Get prev transactions, then sign to transaction
 func (bc *BlockChain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
 

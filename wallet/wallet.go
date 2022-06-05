@@ -73,6 +73,7 @@ func Checksum(payload []byte) []byte {
 	return secondHash[:checksumLength]
 }
 
+// Check if address structure is valid
 func ValidateAddress(address string) bool {
 	pubKeyHash := Base58Decode([]byte(address))
 	actualChecksum := pubKeyHash[len(pubKeyHash)-checksumLength:]

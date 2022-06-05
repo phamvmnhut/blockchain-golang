@@ -49,7 +49,7 @@ func (cli *CommandLine) createWallet() {
 }
 
 func (cli *CommandLine) printChain() {
-	chain := blockchain.ContinueBlockChain("")
+	chain := blockchain.ContinueBlockChain()
 	defer chain.Database.Close()
 	iter := chain.Iterator()
 
@@ -73,7 +73,7 @@ func (cli *CommandLine) printChain() {
 
 func (cli *CommandLine) createBlockChain(address string) {
 	if !wallet.ValidateAddress(address) {
-		log.Panic("Address is not Valid")	
+		log.Panic("Address is not Valid")
 	}
 	chain := blockchain.InitBlockChain(address)
 	chain.Database.Close()
@@ -82,14 +82,14 @@ func (cli *CommandLine) createBlockChain(address string) {
 
 func (cli *CommandLine) getBalance(address string) {
 	if !wallet.ValidateAddress(address) {
-		log.Panic("Address is not Valid")	
+		log.Panic("Address is not Valid")
 	}
-	chain := blockchain.ContinueBlockChain(address)
+	chain := blockchain.ContinueBlockChain()
 	defer chain.Database.Close()
 
 	balance := 0
 	pubKeyHash := wallet.Base58Decode([]byte(address))
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash) - 4]
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	UTXOs := chain.FindUTXO(pubKeyHash)
 
 	for _, out := range UTXOs {
@@ -101,12 +101,12 @@ func (cli *CommandLine) getBalance(address string) {
 
 func (cli *CommandLine) send(from, to string, amount int) {
 	if !wallet.ValidateAddress(to) {
-		log.Panic("Address is not Valid")	
+		log.Panic("Address is not Valid")
 	}
 	if !wallet.ValidateAddress(from) {
-		log.Panic("Address is not Valid")	
+		log.Panic("Address is not Valid")
 	}
-	chain := blockchain.ContinueBlockChain(from)
+	chain := blockchain.ContinueBlockChain()
 	defer chain.Database.Close()
 
 	tx := blockchain.NewTransaction(from, to, amount, chain)
@@ -123,7 +123,6 @@ func (cli *CommandLine) Run() {
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 	listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
-
 
 	getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address to send genesis block reward to")

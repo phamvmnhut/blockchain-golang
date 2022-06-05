@@ -112,6 +112,7 @@ func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
 }
 
+// Generate and set signature for each input in transaction
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
 	if tx.IsCoinbase() {
 		return
@@ -130,12 +131,13 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		txCopy.Inputs[inId].Signature = nil
 		txCopy.Inputs[inId].PubKey = prevTX.Outputs[in.Out].PubKeyHash
 		txCopy.ID = txCopy.Hash()
-		txCopy.Inputs[inId].PubKey = nil
+		txCopy.Inputs[inId].PubKey = nil // reset value for the next loop not affecting to other input
 
 		r, s, err := ecdsa.Sign(rand.Reader, &privKey, txCopy.ID)
 		Handle(err)
 		signature := append(r.Bytes(), s.Bytes()...)
 
+		// Sign for current input of needed transaction
 		tx.Inputs[inId].Signature = signature
 
 	}
@@ -184,6 +186,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	return true
 }
 
+// Clone transaction without transaction sign and public key
 func (tx *Transaction) TrimmedCopy() Transaction {
 	var inputs []TxInput
 	var outputs []TxOutput
