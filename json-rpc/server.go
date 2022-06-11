@@ -44,6 +44,11 @@ func (api *API) CreateWallet(args Args, address *string) error {
 	return nil
 }
 
+func (api *API) ListAddresses(args Args, data *[]string) error {
+	*data = api.cmd.ListAddressesResponse()
+	return nil
+}
+
 func (api *API) GetBalance(args Args, balance *utils.BalanceResponse) error {
 	*balance = api.cmd.GetBalance(args.Address)
 	return nil
@@ -98,6 +103,9 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 		}
 		jsonrpc.ServeConn(conn)
 		http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
 			if r.URL.Path == "/_jsonrpc" {
 				serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})

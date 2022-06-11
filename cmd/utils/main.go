@@ -221,6 +221,17 @@ func (cli *CommandLine) ListAddresses() {
 		fmt.Println(address)
 	}
 }
+
+func (cli *CommandLine) ListAddressesResponse() []string {
+	cwd := false
+	wallets, err := wallet.InitializeWallets(cwd)
+	if err != nil {
+		log.Panic(err)
+	}
+	addresses := wallets.GetAllAddress()
+
+	return addresses;
+}
 func (cli *CommandLine) PrintBlockchain() {
 	chain := cli.Blockchain.ContinueBlockchain()
 	if cli.CloseDbAlways {
