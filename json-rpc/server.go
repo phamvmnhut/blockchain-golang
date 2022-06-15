@@ -103,14 +103,17 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 		}
 		jsonrpc.ServeConn(conn)
 		http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-
-			if r.URL.Path == "/_jsonrpc" {
+			if (r.URL.Path == "/_jsonrpc") {
 				serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
+
 				w.Header().Set("Content-type", "application/json")
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+				w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+				w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 				w.WriteHeader(200)
+				if (r.Method == "OPTIONS") {
+					return
+				}
 				err := rpc.ServeRequest(serverCodec)
 				if err != nil {
 					log.Errorf("Error while serving JSON request: %v", err)
