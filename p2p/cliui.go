@@ -1,13 +1,7 @@
 package p2p
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -197,73 +191,73 @@ func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
 }
 
 func (ui *CLIUI) readFromLogs(instanceId string) {
-	filename := "/logs/console.log"
-	if instanceId != "" {
-		filename = fmt.Sprintf("/logs/console_%s.log", instanceId)
-	}
+	// filename := "/logs/console.log"
+	// if instanceId != "" {
+	// 	filename = fmt.Sprintf("/logs/console_%s.log", instanceId)
+	// }
 
-	logFile := path.Join(Root, filename)
-	e := ioutil.WriteFile(logFile, []byte(""), 0644)
-	if e != nil {
-		panic(e)
-	}
-	log.SetOutput(ioutil.Discard)
+	// logFile := path.Join(Root, filename)
+	// e := ioutil.WriteFile(logFile, []byte(""), 0644)
+	// if e != nil {
+	// 	panic(e)
+	// }
+	// log.SetOutput(ioutil.Discard)
 
-	f, err := os.Open(logFile)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+	// f, err := os.Open(logFile)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer f.Close()
 
-	r := bufio.NewReader(f)
-	info, err := f.Stat()
-	if err != nil {
-		panic(err)
-	}
-	logLevels := map[string]string{
-		"info":    "green",
-		"warning": "brown",
-		"error":   "red",
-		"fatal":   "red",
-	}
-	oldSize := info.Size()
-	for {
-		for line, prefix, err := r.ReadLine(); err != io.EOF; line, prefix, err = r.ReadLine() {
-			var data Log
-			if err := json.Unmarshal(line, &data); err != nil {
-				panic(err)
-			}
-			prompt := fmt.Sprintf("[%s]:", withColor(logLevels[data.Level], strings.ToUpper(data.Level)))
-			if prefix {
-				fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, data.Msg)
-			} else {
-				fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, data.Msg)
-			}
-			ui.hostWindow.ScrollToEnd()
-		}
-		pos, err := f.Seek(0, io.SeekCurrent)
-		if err != nil {
-			panic(err)
-		}
-		for {
-			time.Sleep(time.Second)
-			newinfo, err := f.Stat()
-			if err != nil {
-				panic(err)
-			}
-			newSize := newinfo.Size()
-			if newSize != oldSize {
-				if newSize < oldSize {
-					f.Seek(0, 0)
-				} else {
-					f.Seek(pos, io.SeekStart)
-				}
-				r = bufio.NewReader(f)
-				oldSize = newSize
-				break
-			}
-		}
-	}
+	// r := bufio.NewReader(f)
+	// info, err := f.Stat()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// logLevels := map[string]string{
+	// 	"info":    "green",
+	// 	"warning": "brown",
+	// 	"error":   "red",
+	// 	"fatal":   "red",
+	// }
+	// oldSize := info.Size()
+	// for {
+	// 	for line, prefix, err := r.ReadLine(); err != io.EOF; line, prefix, err = r.ReadLine() {
+	// 		var data Log
+	// 		if err := json.Unmarshal(line, &data); err != nil {
+	// 			panic(err)
+	// 		}
+	// 		prompt := fmt.Sprintf("[%s]:", withColor(logLevels[data.Level], strings.ToUpper(data.Level)))
+	// 		if prefix {
+	// 			fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, data.Msg)
+	// 		} else {
+	// 			fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, data.Msg)
+	// 		}
+	// 		ui.hostWindow.ScrollToEnd()
+	// 	}
+	// 	pos, err := f.Seek(0, io.SeekCurrent)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	for {
+	// 		time.Sleep(time.Second)
+	// 		newinfo, err := f.Stat()
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 		newSize := newinfo.Size()
+	// 		if newSize != oldSize {
+	// 			if newSize < oldSize {
+	// 				f.Seek(0, 0)
+	// 			} else {
+	// 				f.Seek(pos, io.SeekStart)
+	// 			}
+	// 			r = bufio.NewReader(f)
+	// 			oldSize = newSize
+	// 			break
+	// 		}
+	// 	}
+	// }
 }
 
 // handleEvents runs an event loop that sends user input to the channel
